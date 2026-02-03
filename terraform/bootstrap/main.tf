@@ -74,3 +74,8 @@ resource "aws_iam_role_policy" "github_policy" {
     ]
   })
 }
+# Add this to your existing bootstrap file to give GitHub the "Admin" muscle it needs
+resource "aws_iam_role_policy_attachment" "github_iam_admin" {
+  role       = aws_iam_role.github_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess" 
+}
