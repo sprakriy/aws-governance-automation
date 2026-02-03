@@ -1,7 +1,7 @@
 name: "Terraform Governance Apply"
 
 on:
-  push:
+  workflow_dispatch:
     branches:
       - main
 
@@ -23,7 +23,7 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::319310747432:oidc-provider/token.actions.githubusercontent.com # The ARN from your bootstrap output
+          role-to-assume: arn:aws:iam::319310747432:role/GitHub-Governance-Hero-Role # The ARN from your bootstrap output
           aws-region: us-east-1
 
       - name: Setup Terraform
