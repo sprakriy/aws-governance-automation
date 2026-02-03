@@ -1,6 +1,6 @@
 # 1. Call the Resource Auditor Module (The Muscle)
 module "auditor" {
-  source = "../../modules/resource-auditor"
+  source = "../terraform/modules/resource-auditor"
 }
 
 # 2. The EventBridge Rule (The Brain - Trigger every day)
