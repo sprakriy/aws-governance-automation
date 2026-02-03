@@ -1,0 +1,38 @@
+name: "Terraform Governance Apply"
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write   # Required for requesting the JWT (OIDC)
+  contents: read    # Required for actions/checkout
+
+jobs:
+  terraform:
+    name: "Apply Infrastructure"
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: "us-east-1"
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::319310747432:oidc-provider/token.actions.githubusercontent.com # The ARN from your bootstrap output
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform/environments/prod
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform/environments/prod
