@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./terraform/environments/prod
+        working-directory: ./environments/prod
     env:
       AWS_REGION: "us-east-1"
       
@@ -32,8 +32,8 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: ./terraform/environments/prod
+        working-directory: ./environments/prod
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: ./terraform/environments/prod
+        working-directory: ./environments/prod
