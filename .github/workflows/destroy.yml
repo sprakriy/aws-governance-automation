@@ -1,0 +1,34 @@
+name: "Terraform Governance Destroy"
+
+on:
+  workflow_dispatch: # This makes it a manual button in the Actions tab
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-destroy:
+    name: "Teardown Infrastructure"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./environments/prod
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: ./environments/prod
