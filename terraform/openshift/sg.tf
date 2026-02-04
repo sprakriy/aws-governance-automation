@@ -13,7 +13,7 @@ resource "aws_security_group" "oracle_sg" {
     to_port     = 1521
     protocol    = "tcp"
 #    cidr_blocks = ["${var.sandbox_ip}/32"] 
-    cidr_block  = "52.0.100.174/32"
+    cidr_blocks  = "52.0.100.174/32"
     description = "OpenShift Sandbox Egress IP"
   }
 

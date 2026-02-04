@@ -13,7 +13,7 @@ resource "kubernetes_secret" "oracle_credentials" {
 
   type = "Opaque"
 }
-resource "kubernetes_persistent_volume_claim" "oracle_data" {
+resource "kubernetes_persistent_volume_claim_v1" "oracle_data" {
   metadata {
     name      = "oracle-pvc"
     namespace = "my-dba-project"
