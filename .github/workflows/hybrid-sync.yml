@@ -36,10 +36,10 @@ jobs:
       
       - name: Terraform Apply
         run: |
-          cd terraform/openshift
           terraform init
           terraform apply -auto-approve \
             -var="openshift_server=${{ secrets.OPENSHIFT_SERVER }}" \
             -var="openshift_token=${{ secrets.OPENSHIFT_TOKEN }}" \
             -var="db_password=${{ secrets.DB_PASSWORD }}" \
             -var="openshift_namespace=${{ secrets.OPENSHIFT_NAMESPACE }}"
+        working-directory: ./terraform/openshift
