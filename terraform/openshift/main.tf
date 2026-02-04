@@ -1,3 +1,8 @@
+provider "kubernetes" {
+  host  = var.openshift_server
+  token = var.openshift_token
+  insecure = true 
+}
 resource "kubernetes_secret" "oracle_credentials" {
   metadata {
     name      = "oracle-db-creds"
