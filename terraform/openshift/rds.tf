@@ -9,7 +9,7 @@ data "aws_subnets" "default" {
 
 # This creates the group required by RDS
 resource "aws_db_subnet_group" "default" {
-  name       = "oracle-subnet-group-v2"
+  name       = "oracle-subnet-group-v3"
   subnet_ids = data.aws_subnets.default.ids
 
   tags = {

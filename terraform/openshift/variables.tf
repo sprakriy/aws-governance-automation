@@ -22,5 +22,5 @@ variable "db_password" {
 variable "openshift_namespace" {
   type        = string
   description = "Your specific sandbox namespace (e.g., yourname-dev)"
-  default    = "shankar-prakriya-dev"
+#  default    = "shankar-prakriya-dev"
 }

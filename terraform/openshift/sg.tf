@@ -3,7 +3,7 @@ data "aws_vpc" "default" {
   default = true
 }
 resource "aws_security_group" "oracle_sg" {
-  name        = "openshift-to-oracle-sg-v2"
+  name        = "openshift-to-oracle-sg-v3"
   description = "Allow OpenShift Sandbox to reach Oracle RDS"
   vpc_id      = data.aws_vpc.default.id
 
