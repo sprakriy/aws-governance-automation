@@ -1,6 +1,7 @@
 provider "kubernetes" {
   host  = var.openshift_server
   token = var.openshift_token
+  load_config_file = false
   insecure = true 
 }
 resource "kubernetes_secret" "oracle_credentials" {
@@ -31,4 +32,8 @@ resource "kubernetes_persistent_volume_claim_v1" "oracle_data" {
       }
     }
   }
+}
+# Add this to your main.tf temporarily
+output "debug_server_url" {
+  value = var.openshift_server
 }

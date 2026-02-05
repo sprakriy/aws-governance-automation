@@ -1,7 +1,7 @@
 variable "openshift_server" {
   type        = string
   description = "The API URL of your OpenShift Sandbox"
-  default     = "https://api.sandbox-m2.ll9k.p1.openshiftapps.com:6443"
+#  default     = "https://api.rm1.0a51.p1.openshiftapps.com:6443"
 }
 
 variable "openshift_token" {
