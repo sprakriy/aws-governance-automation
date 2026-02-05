@@ -1,6 +1,45 @@
-terraform destroy -auto-approve \
-  -var="openshift_server=${{ secrets.OPENSHIFT_SERVER }}" \
-  -var="openshift_token=${{ secrets.OPENSHIFT_TOKEN }}" \
-  -var="db_password=${{ secrets.DB_PASSWORD }}" \
-  -var="openshift_namespace=${{ secrets.OPENSHIFT_NAMESPACE }}" \
-  -var="sandbox_ip=${{ secrets.SANDBOX_IP }}"
+name: "Terraform Open Shift Destroy"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # Required for requesting the JWT (OIDC)
+  contents: read    # Required for actions/checkout
+
+jobs:
+  terraform:
+    name: "Apply Infrastructure"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform/openshift
+    env:
+      AWS_REGION: "us-east-1"
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::319310747432:role/GitHub-Governance-Hero-Role # The ARN from your bootstrap output
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform/openshift
+      
+      - name: Terraform Apply
+        run: |
+          terraform init
+          terraform destroy -auto-approve \
+            -var="openshift_server=${{ secrets.OPENSHIFT_SERVER }}" \
+            -var="openshift_token=${{ secrets.OPENSHIFT_TOKEN }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="openshift_namespace=${{ secrets.OPENSHIFT_NAMESPACE }}"
+        working-directory: ./terraform/openshift
