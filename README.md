@@ -1,66 +1,104 @@
-# Multi-Region AWS Infrastructure with Global Accelerator & ECS
+AWS Governance: Automated EBS Auditor
+A production-ready, serverless framework that identifies unattached (idle) EBS volumes, secures their data via automated snapshots, and operates with zero-credential security using OIDC.
 
-A production-grade, highly resilient multi-region infrastructure project designed for seamless failover. This project provisions a modular environment using Terraform with an S3 backend and GitHub Actions, deploying an Amazon ECS Fargate application across two AWS regions (`us-east-1` and `us-west-2`) fronted by an AWS Global Accelerator.
-
----
-
-## 🏗️ System Architecture
-
-The blueprint below represents the multi-region entry point and traffic routing distribution across your infrastructure.
+Here is the workflow.
 
 ```mermaid
-flowchart TD
-    A["User Terminal / GitHub Actions"]
+graph TD
+    subgraph Local Environment
+        A[Local Machine] -->|1. cd terraform/bootstrap| B(Terraform Bootstrap)
+        B -->|2. terraform apply| C[(S3 Remote State & OIDC Provider)]
+    end
 
-    GA["AWS Global Accelerator<br/>a94e92d27d47adec8"]
+    subgraph GitHub Repository & CI/CD
+        D[Push to main branch] --> E[.github/workflows/terraform-apply.yml]
+        F[Manual Trigger] --> G[.github/workflows/destroy.yml]
+        
+        E -->|Assume OIDC Role via AWS_ROLE_ARN| H[AWS STS]
+        H -->|Temporary Security Credentials| I[Terraform Init & Apply]
+        
+        G -->|Tear down Governance Layer only| J[Terraform Destroy]
+    end
 
-    subgraph AWS_Cloud["AWS Global Infrastructure"]
-        subgraph Region_East["Region: us-east-1"]
-            ALB_East["Application Load Balancer"]
-            ECS_East["ECS Fargate: Prod Service"]
-        end
-
-        subgraph Region_West["Region: us-west-2"]
-            ALB_West["Application Load Balancer"]
-            ECS_West["ECS Fargate: Prod Service"]
+    subgraph AWS Cloud Architecture
+        C -.->|Remote State Backend| I
+        I --> K[Governance Layer Deployment]
+        
+        subgraph Governance Layer
+            L[AWS EventBridge Cron Trigger] -->|Scheduled Event| M[AWS Lambda Auditor]
+            M -->|Boto3 API Calls| N[Identify Unattached EBS Volumes]
+            N -->|Snapshot-Before-Delete Policy| O[Create Automated EBS Snapshot]
+            O -->|Delete Idle Volume| P[Cost Optimization & Risk Mitigation]
         end
     end
 
-    A -->|"Terraform Deploy / Manage"| GA
-
-    GA -->|"Active / Weight 128"| ALB_East
-    GA -->|"Standby / Weight 128"| ALB_West
-
-    ALB_East --> ECS_East
-    ALB_West --> ECS_West
+    style C fill:#f9f,stroke:#333,stroke-width:2px
+    style M fill:#bbf,stroke:#333,stroke-width:2px
+    style L fill:#ff9,stroke:#333,stroke-width:2px
 ```
+🚀 Business Value & Efficiency
+Cost Optimization: Automatically targets "available" EBS volumes that accrue costs without providing value.
 
-## 🔄 Traffic Routing & Failover
+Risk Mitigation: Ensures a "Snapshot-Before-Delete" policy, providing data durability while reducing storage overhead.
 
-The sequence below illustrates normal traffic flow through AWS Global Accelerator and the automatic regional failover process.
+Operational Excellence: Replaces manual infrastructure audits with an EventBridge-driven schedule.
 
-```mermaid
-sequenceDiagram
-    autonumber
+Enhanced Security: Implements OIDC (OpenID Connect) to eliminate the need for long-lived AWS Access Keys in CI/CD.
 
-    participant Client as "Client / Browser"
-    participant GA as "AWS Global Accelerator"
-    participant RegionA as "Region A (us-east-1)"
-    participant RegionB as "Region B (us-west-2)"
+Project Architecture
+This project is split into two distinct layers for maximum stability:
 
-    Note over Client,RegionB: Normal Operation Phase - Traffic Routing
+The Bootstrap Layer: Sets up the foundational OIDC trust relationship and the S3 Remote State "Lockbox."
 
-    Client->>GA: HTTP Request - Global DNS
-    GA->>RegionA: Route Traffic - Active Endpoint
-    RegionA-->>Client: HTTP 200 OK - Response
+The Governance Layer: Deploys the Python-based Lambda auditor and the EventBridge cron-trigger.
 
-    Note over Client,RegionB: Failover Simulation Phase - Outage Handling
+🛠️ Tech Stack
+Infrastructure: Terraform
 
-    RegionA--xRegionA: Simulate Outage - Tasks Scaled to 0
-    GA->>RegionA: Health Check Fails - Unhealthy Endpoint
-    GA->>RegionB: Automatically Reroute Traffic - Standby Endpoint
+Language: Python 3.x (Boto3)
 
-    Client->>GA: Next HTTP Request
-    GA->>RegionB: Route Traffic to Secondary Region
-    RegionB-->>Client: HTTP 200 OK - Seamless Failover
-```
+CI/CD: GitHub Actions
+
+Security: IAM OIDC Identity Provider
+
+Compute: AWS Lambda (Serverless)
+
+Plaintext
+.
+├── .github/workflows
+│   ├── terraform-apply.yml    # Automated deployment
+│   └── destroy.yml            # Manual teardown trigger
+├── terraform
+│   ├── bootstrap              # One-time setup (OIDC/S3)
+│   ├── environments
+│   │   └── prod               # Production configuration & backend
+│   └── modules
+│       └── resource-auditor   # Reusable Lambda & IAM logic
+
+Deployment Instructions
+1. The "Hand of God" Bootstrap
+Run this locally once to establish the cloud identity:
+
+Bash
+cd terraform/bootstrap
+terraform init
+terraform apply
+2. Configure GitHub Secrets
+Add the following secret to your GitHub Repository:
+
+AWS_ROLE_ARN: The ARN of the OIDC Role created in the bootstrap phase.
+
+3. Automated Apply
+Simply push to the main branch. GitHub Actions will:
+
+Assume the OIDC role.
+
+Initialize the remote S3 backend.
+
+Deploy/Update the Auditor Lambda.
+
+Cleanup
+To avoid unwanted costs, use the Manual Destroy workflow in the GitHub Actions tab. This will tear down the governance resources while keeping the OIDC identity intact for future use.
+
+The Architect's Note
+"This project demonstrates the transition from manual cloud management to Infrastructure as Code (IaC). By isolating the identity layer from the functional layer, we've created a resilient pipeline that can be destroyed and recreated in seconds with 100% consistency."
